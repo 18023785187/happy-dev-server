@@ -1,13 +1,13 @@
 {
   "name": "happy-dev-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "能导入js、css、image等文件的静态服务器",
   "main": "dist/happy-dev-server.min.cjs",
   "module": "dist/happy-dev-server.min.mjs",
   "types": "dist/happy-dev-server.d.ts",
   "type": "module",
   "bin": {
-    "happy-dev-server": "./bin/happy-dev-server"
+    "happy-dev-server": "./bin/happy-dev-server.js"
   },
   "scripts": {
     "clean": "del-cli dist",
