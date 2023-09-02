@@ -143,7 +143,7 @@ export default class HappyDevServer extends Server {
                 dependencys.forEach(dependency => {
                     const libName = `${dependency}${encodeURI(dependencies[dependency])}.js`
                     // 如果之前已经打包过当前依赖包，且版本没变，那么跳过当前依赖包的打包
-                    if(fs.existsSync(resolve(node_modules, `./${prefix}/${libName}`))) {
+                    if (fs.existsSync(resolve(node_modules, `./${prefix}/${libName}`))) {
                         imports[dependency] = `${prefix}/${libName}`
                         return
                     }
@@ -166,7 +166,7 @@ export default class HappyDevServer extends Server {
                         printLibName.push(dependency)
                     } catch { }
                 })
-                if (promises.length) console.log(`building libraries... \n${ printLibName.join(',') }`)
+                if (promises.length) console.log(`building libraries... \n${printLibName.join(',')}`)
                 Promise.all(promises).then(() => promiseResolve(imports))
             } catch {
                 promiseResolve(imports)
@@ -179,8 +179,17 @@ export default class HappyDevServer extends Server {
      * 所有资源都经过处理变成 javascript 格式并发送
      */
     private loadFile(): void {
-        this.app.all('/*', (req, res, next) => {
+        this.app.all('/*', async (req, res, next) => {
             const filePath = resolve(toUnixPath(rootPath), '.' + req.url)
+            /**
+             * 其他 accept 类型的请求原封不动地返回
+             * 
+             * 例如 link、iframe、img、css @import 等
+             */
+            if(req.headers.accept !== '*/*') {
+                res.sendFile(filePath)
+                return
+            }
             // 如果有缓存，则取缓存结果发送
             if (this.fileMap.has(filePath)) {
                 res.setHeader('Content-Type', 'application/javascript; charset=UTF-8')
@@ -190,15 +199,19 @@ export default class HappyDevServer extends Server {
             try {
                 const parsedPath = path.parse(resolve(toUnixPath(rootPath), '.' + req.url))
                 const buffer: Buffer = fs.readFileSync(filePath)
-                let result: string = transform(buffer, parsedPath)
-                // 转换第三方库的路径
-                result = urlTransform(result, this.imports)
+                let result: string = await transform(buffer, parsedPath)
+                // 如果 babel 转换路径失败，说明不是能识别的文件，那么将不处理直接放行
+                try {
+                    // 转换第三方库的路径
+                    result = urlTransform(result, this.imports)
+                } catch { }
                 // 设置文件缓存
                 this.fileMap.set(filePath, result)
                 res.setHeader('Content-Type', 'application/javascript; charset=UTF-8')
                 res.send(result)
                 return
-            } catch {
+            } catch (e) {
+                console.log(e)
                 next()
             }
         })

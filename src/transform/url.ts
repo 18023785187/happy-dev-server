@@ -20,7 +20,7 @@ const types: { [k: string]: string } = {
 /**
  * buffer 转 base64
  */
-export default (buffer: Buffer, parsedPath: ParsedPath) => {
+export default async (buffer: Buffer, parsedPath: ParsedPath) => {
     return `
         export default "${types[parsedPath.ext]}${buffer.toString('base64')}"
     `

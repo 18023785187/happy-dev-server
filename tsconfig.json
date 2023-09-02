@@ -16,7 +16,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
   },
   "include": ["src/**/*.ts", "rollup.config.js", "src/index.ts", "../happy-server/src/HappyServer.ts"],
   "exclude": [ // 排除项

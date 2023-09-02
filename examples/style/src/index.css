@@ -1,0 +1,15 @@
+.css-box {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background-color: blue;
+}
+
+.css-box::before {
+    content: 'css';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+}

@@ -1,0 +1,21 @@
+@content: 'less';
+
+.center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.less-box {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background-color: rgb(14, 14, 99);
+
+    &::before {
+        content: @content;
+        .center();
+        color: white;
+    }
+}

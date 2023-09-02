@@ -108,6 +108,8 @@ import 'element-plus/dist/index.css'
 
 对于第三方模块的加载 `happy-dev-server` 会查找 `package.json` 中的 `dependencies`，并对其进行打包，通过改写 `import` 中的地址来完成加载。
 
+`happy-dev-server` 只拦截通过 `script` 引入的文件，对于诸如 `link`、`img src`、`iframe`、`css @import` 等方式的引入将原封不动地返回文件内容。
+
 例如：
 
 ```javascript
@@ -135,4 +137,4 @@ import '/node_modules/element-plus/dist/index.css'
 
 还差 https 模块的支持
 
-还可以增加对 ts、vue、jsx 等文件的支持
+还可以增加对 vue、jsx 等文件的支持

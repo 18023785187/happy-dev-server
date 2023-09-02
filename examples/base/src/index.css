@@ -1,0 +1,11 @@
+#pkg {
+    padding: 20px;
+    color: #999;
+    background-color: rgb(40, 44, 52);
+    white-space: pre-wrap
+}
+
+iframe {
+    width: 800px;
+    aspect-ratio: 16/9;
+}
