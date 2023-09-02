@@ -1,9 +1,6 @@
 import type { ParsedPath } from 'path'
+import style from './helpers/style'
 
 export default async (buffer: Buffer, parsedPath: ParsedPath) => {
-    return `
-        const styleEl = document.createElement('style')
-        styleEl.innerHTML = \`${buffer.toString('utf-8')}\`
-        document.body.appendChild(styleEl)
-    `
+    return style(buffer.toString('utf-8'))
 }
