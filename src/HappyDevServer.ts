@@ -3,6 +3,7 @@ import path from 'path'
 import express from 'express';
 import { WebSocketServer } from 'ws'
 import { render as ejsRender } from 'ejs'
+import chalk from 'chalk'
 import Server from './Server'
 import type { ServerOptions } from './Server'
 import { rootPath, resolve, toUnixPath, debounce } from './utils'
@@ -29,34 +30,37 @@ export default class HappyDevServer extends Server {
         this.isWatch = false
         this.imports = {}
         this.fileMap = new Map()
+    }
 
-        this.start()
-            .then(async () => {
-                this.imports = await this.buildLib()
-                // 如果 isWatch = true，那么自动调用 watchHandler
+    public start(): Promise<void> {
+        return new Promise(promiseResolve => {
+            super.init()
+                .then(async () => {
+                    this.imports = await this.buildLib()
+                    // 如果 isWatch = true，那么自动调用 watchHandler
+                    if (this.isWatch) {
+                        this.watchHandler()
+                    }
+                    this.static(staticPlugin)
+                    this.loadFile()
+
+                    promiseResolve()
+                })
+                .catch(err => {
+                    throw new Error(err)
+                })
+
+            // 为 html 注入若干功能性效果
+            const staticPlugin: StaticPlugin = (html) => {
                 if (this.isWatch) {
-                    this.watchHandler()
+                    // 向浏览器注入 ws 服务
+                    const wsScript: string = ejsRender(wsScriptTemp)
+                    html += wsScript
                 }
-                this.static(staticPlugin)
-                this.loadFile()
 
-                console.log(`http://${this.options.host}:${this.options.port}`)
-            })
-            .catch(err => {
-                throw new Error(err)
-            })
-
-        // 为 html 注入若干功能性效果
-        const staticPlugin: StaticPlugin = (html) => {
-            if (this.isWatch) {
-                // 向浏览器注入 ws 服务
-                const url = `${this.options.https ? 'wss' : 'ws'}://${this.options.host}:${this.options.port}${wsPath}`
-                const wsScript: string = ejsRender(wsScriptTemp, { url })
-                html += wsScript
+                return html
             }
-
-            return html
-        }
+        })
     }
 
     /**
@@ -166,8 +170,21 @@ export default class HappyDevServer extends Server {
                         printLibName.push(dependency)
                     } catch { }
                 })
-                if (promises.length) console.log(`building libraries... \n${printLibName.join(',')}`)
-                Promise.all(promises).then(() => promiseResolve(imports))
+                // 提示用户开始打包第三方库，打印构建列表
+                if (promises.length) 
+                    console.log(
+                        chalk.bold(`${
+                            chalk.green(`🚧  Building libraries...\n`)
+                        }${
+                            chalk.gray('Library list: ')
+                        }${
+                            chalk.blue(printLibName.join(chalk.gray(', ')))
+                        }`)
+                    )
+                Promise.all(promises).then(() => {
+                    promiseResolve(imports)
+                    if(promises.length) console.log(chalk.bold(chalk.green(`📦  completed`)))
+                })
             } catch {
                 promiseResolve(imports)
             }
@@ -186,7 +203,7 @@ export default class HappyDevServer extends Server {
              * 
              * 例如 link、iframe、img、css @import 等
              */
-            if(req.headers.accept !== '*/*') {
+            if (req.headers.accept !== '*/*') {
                 res.sendFile(filePath)
                 return
             }

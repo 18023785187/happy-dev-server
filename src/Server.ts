@@ -12,7 +12,6 @@ type https = {
 }
 
 export interface ServerOptions {
-    host?: string // 域名
     port?: port, // 端口
     https?: https | false // https 服务
     static?: string // 线上静态目录文件位置
@@ -20,7 +19,6 @@ export interface ServerOptions {
 }
 
 const defaultOptions: Required<ServerOptions> = {
-    host: 'localhost',
     port: 1234,
     https: false,
     static: '/static/',
@@ -36,6 +34,14 @@ export default class Server {
         this.app = express()
     }
 
+    get port(): number {
+        return this.options.port
+    }
+
+    get https(): boolean {
+        return !!this.options.https
+    }
+
     /**
      * 整理 options 参数
      * @param options 
@@ -44,7 +50,6 @@ export default class Server {
     private normalization(options: ServerOptions): typeof defaultOptions {
         const newOptions = { ...defaultOptions }
 
-        if (options?.host) newOptions.host = options.host
         if (options?.port) newOptions.port = options.port
         if (options?.https) newOptions.https = options.https
         if (options?.static) newOptions.static = options.static
@@ -54,10 +59,10 @@ export default class Server {
     }
 
     /**
-     * 启动服务
+     * 初始化服务器
      * @returns 
      */
-    protected async start(): ReturnType<Server['listen']> {
+    protected async init(): ReturnType<Server['listen']> {
         return new Promise(async (resolve) => {
             if (this.options.https) {
                 const https = await import('https')
@@ -78,13 +83,13 @@ export default class Server {
      */
     private async listen(port = this.options.port): Promise<number> {
         return new Promise((resolve: (port: port) => void, reject: (error: Error) => void) => {
-            this.server!.listen(port, this.options.host)
+            this.server!.listen(port)
             this.server!.on('listening', () => {
                 resolve(port)
             })
             this.server!.on('error', (error: any) => {
                 if (error.code === 'EADDRINUSE') { // 系统监听端口操作报错
-                    this.server!.listen(++port, this.options.host) // 端口递增并再次监听
+                    this.server!.listen(++port) // 端口递增并再次监听
                 } else {
                     reject(error)
                 }

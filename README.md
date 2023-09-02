@@ -35,7 +35,6 @@ type https = {
 }
 
 interface ServerOptions {
-    host?: string // 域名
     port?: port, // 端口
     https?: https | false // https 服务
     static?: string // 线上静态目录文件位置
@@ -43,7 +42,6 @@ interface ServerOptions {
 }
 
 const defaultOptions: Required<ServerOptions> = {
-    host: 'localhost',
     port: 1234,
     https: false,
     static: '/static/',
@@ -54,7 +52,7 @@ const defaultOptions: Required<ServerOptions> = {
 命令行配置参数
 
 ```
-happy-dev-server -w -p 8000 -h localhost
+happy-dev-server -w -p 8000 -h
 ```
 
 ## 功能

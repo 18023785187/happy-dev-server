@@ -16,3 +16,11 @@
 
 - 增加对 typescript、less、scss 的支持
 - 增加示例和文档
+
+###### v1.1.1
+
+- 增加 css、less、scss 对 @import url() 的支持，重构样式处理逻辑
+
+###### v1.1.2
+
+- 优化打印字体
