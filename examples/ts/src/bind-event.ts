@@ -1,4 +1,4 @@
-import content from './index.ts'
+import content from './index'
 
 type Word = string
 

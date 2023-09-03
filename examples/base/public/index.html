@@ -12,7 +12,7 @@
     <iframe id="iframe" src="<%= static %>index.html" frameborder="0"></iframe>
     <script type="module" src="<%= static %>base.js"></script>
     <script type="module">
-        import pkg from '../src/index.js'
+        import pkg from '../src/index'
         import '../src/index.css'
 
         document.getElementById('pkg').innerText = JSON.stringify(pkg, null, 4)

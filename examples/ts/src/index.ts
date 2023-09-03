@@ -1,5 +1,5 @@
-import bindEvent from "./bind-event.ts"
-import type { Word } from './bind-event.ts'
+import bindEvent from "./bind-event"
+import type { Word } from './bind-event'
 
 const content = document.getElementById('content')!
 

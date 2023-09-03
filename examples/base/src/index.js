@@ -1,5 +1,5 @@
 import image from './test.png'
-import pkg from '../package.json'
+import pkg from '../package'
 
 console.log(image)
 
