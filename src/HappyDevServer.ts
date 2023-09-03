@@ -6,7 +6,7 @@ import { render as ejsRender } from 'ejs'
 import chalk from 'chalk'
 import Server from './Server'
 import type { ServerOptions } from './Server'
-import { rootPath, resolve, toUnixPath, debounce } from './utils'
+import { rootPath, resolve, toUnixPath, resolvePath, debounce } from './utils'
 import wsScriptTemp from './client/wsScriptTemp'
 import { transform, urlTransform } from './transform';
 import build from './build'
@@ -22,6 +22,10 @@ export interface Imports {
 const wsPath = '/ws'
 
 export default class HappyDevServer extends Server {
+    /**
+     * 匹配的扩展名，如请求路径为 ./index，会依次查找 ./index.js、./index.ts、./index.json
+     */
+    private static readonly extensions = ['js', 'ts', 'json']
     private isWatch: boolean
     private imports: Imports
     private fileMap: Map<string, string> // 缓存文件编译结果
@@ -171,19 +175,16 @@ export default class HappyDevServer extends Server {
                     } catch { }
                 })
                 // 提示用户开始打包第三方库，打印构建列表
-                if (promises.length) 
+                if (promises.length)
                     console.log(
-                        chalk.bold(`${
-                            chalk.green(`🚧  Building libraries...\n`)
-                        }${
-                            chalk.gray('Library list: ')
-                        }${
-                            chalk.blue(printLibName.join(chalk.gray(', ')))
-                        }`)
+                        chalk.bold(`${chalk.green(`🚧  Building libraries...\n`)
+                            }${chalk.gray('Library list: ')
+                            }${chalk.blue(printLibName.join(chalk.gray(', ')))
+                            }`)
                     )
                 Promise.all(promises).then(() => {
                     promiseResolve(imports)
-                    if(promises.length) console.log(chalk.bold(chalk.green(`📦  completed`)))
+                    if (promises.length) console.log(chalk.bold(chalk.green(`📦  completed`)))
                 })
             } catch {
                 promiseResolve(imports)
@@ -197,14 +198,23 @@ export default class HappyDevServer extends Server {
      */
     private loadFile(): void {
         this.app.all('/*', async (req, res, next) => {
-            const filePath = resolve(toUnixPath(rootPath), '.' + req.url)
+            const originPath = resolve(toUnixPath(rootPath), '.' + req.url)
             /**
              * 其他 accept 类型的请求原封不动地返回
              * 
              * 例如 link、iframe、img、css @import 等
              */
             if (req.headers.accept !== '*/*') {
-                res.sendFile(filePath)
+                res.sendFile(originPath)
+                return
+            }
+            const filePath = resolvePath(originPath, HappyDevServer.extensions)
+            if (!filePath) {
+                try {
+                    fs.readFileSync(originPath)
+                } catch (e) {
+                    console.error(e)
+                }
                 return
             }
             // 如果有缓存，则取缓存结果发送
@@ -214,7 +224,7 @@ export default class HappyDevServer extends Server {
                 return
             }
             try {
-                const parsedPath = path.parse(resolve(toUnixPath(rootPath), '.' + req.url))
+                const parsedPath = path.parse(filePath)
                 const buffer: Buffer = fs.readFileSync(filePath)
                 let result: string = await transform(buffer, parsedPath)
                 // 如果 babel 转换路径失败，说明不是能识别的文件，那么将不处理直接放行
@@ -228,7 +238,7 @@ export default class HappyDevServer extends Server {
                 res.send(result)
                 return
             } catch (e) {
-                console.log(e)
+                console.error(e)
                 next()
             }
         })
