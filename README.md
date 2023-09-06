@@ -1,12 +1,14 @@
 # happy-dev-server
 
+<a href="https://www.npmjs.com/package/happy-dev-server"><img src="https://img.shields.io/npm/v/happy-dev-server.svg?sanitize=true" alt="Version"></a>
+
 能导入js、css、image等文件的静态服务器。
 
 目前支持的功能有：
 
 - 监听文件改动自动刷新浏览器。
 - js、ts、json、vue 文件引入扩展名省略，如 `import {} from './src/index`。
-- 支持导入 js、css、图片、json、ts、less、scss 文件。
+- 支持导入 js、css、图片、json、ts、less、scss、vue 文件。
 - 支持 html 注入环境变量，如 `<script src="<%= static %>index.js"></script>`。
 
 ## 使用
@@ -23,6 +25,19 @@ happy-dev-server -w
 ```
 
 `-w` 为监听根目录下的文件变化，从而通知浏览器刷新
+
+命令行调用的情况下根目录应有一个 `public` 文件夹用于存放静态资源（examples文件夹有详细示例）。
+
+```
+root
+|---> public
+|       |---> index.html
+|
+|---> src
+        |---> index.js、.ts、.css、...、.vue
+```
+
+---
 
 api 调用
 
@@ -144,4 +159,4 @@ import '/node_modules/element-plus/dist/index.css'
 
 还差 https 模块的支持
 
-还可以增加对 vue、jsx 等文件的支持
+还可以增加对 jsx 等文件的支持
