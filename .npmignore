@@ -22,4 +22,6 @@ yarn-debug.log*
 scripts
 src
 tsconfig.json
+rollup.config.js
+rollup.dts.config.js
 .parcel-cache
