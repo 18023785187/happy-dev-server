@@ -6,10 +6,11 @@ import replace from 'rollup-plugin-replace'
 
 /**
  * 调用 rollup 在线打包文件
- * @param input 
- * @param output 
+ * @param input 打包入口
+ * @param output 打包出口
+ * @param external 排除的第三方库，不让第三方库打包入内
  */
-export default function build(input: string, output: string): Promise<void> {
+export default function build(input: string, output: string, external: string[]): Promise<void> {
     return new Promise(async promiseResolve => {
         const inputOptions: InputOptions = {
             input,
@@ -22,6 +23,7 @@ export default function build(input: string, output: string): Promise<void> {
                 }),
                 commonjs(),
             ],
+            external
         }
         const outputOptions: OutputOptions = {
             file: output,

@@ -25,7 +25,7 @@ export default class HappyDevServer extends Server {
     /**
      * 匹配的扩展名，如请求路径为 ./index，会依次查找 ./index.js、./index.ts、./index.json
      */
-    private static readonly extensions = ['js', 'ts', 'json']
+    private static readonly extensions = ['js', 'ts', '.vue', 'json']
     private isWatch: boolean
     private imports: Imports
     private fileMap: Map<string, string> // 缓存文件编译结果
@@ -165,7 +165,8 @@ export default class HappyDevServer extends Server {
                         promises.push(
                             build(
                                 resolve(dependencyRootPath, dependencyPackageJson.module ?? dependencyPackageJson.main),
-                                resolve(node_modules, `./${prefix}/${libName}`)
+                                resolve(node_modules, `./${prefix}/${libName}`),
+                                dependencys
                             )
                         )
 
