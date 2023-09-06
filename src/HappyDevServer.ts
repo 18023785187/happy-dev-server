@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import axios from 'axios'
 import express from 'express';
 import { WebSocketServer } from 'ws'
 import { render as ejsRender } from 'ejs'
@@ -25,7 +26,7 @@ export default class HappyDevServer extends Server {
     /**
      * 匹配的扩展名，如请求路径为 ./index，会依次查找 ./index.js、./index.ts、./index.json
      */
-    private static readonly extensions = ['js', 'ts', '.vue', 'json']
+    private static readonly extensions = ['js', 'ts', 'vue', 'json']
     private isWatch: boolean
     private imports: Imports
     private fileMap: Map<string, string> // 缓存文件编译结果
@@ -201,12 +202,20 @@ export default class HappyDevServer extends Server {
         this.app.all('/*', async (req, res, next) => {
             const originPath = resolve(toUnixPath(rootPath), '.' + req.url)
             /**
-             * 其他 accept 类型的请求原封不动地返回
-             * 
-             * 例如 link、iframe、img、css @import 等
+             * 其他 accept 类型的请求将会直接拦截，然后查找是否有目标文件，
+             * 如果找不到目标文件将转发 '/' 请求并返回
              */
             if (req.headers.accept !== '*/*') {
-                res.sendFile(originPath)
+                try {
+                    const content = fs.readFileSync(originPath)
+                    res.send(content)
+                } catch (e) {
+                    const host = req.get('Host')
+                    if (host) {
+                        const { data } = await axios.get(`//${host}`)
+                        res.send(data)
+                    }
+                }
                 return
             }
             const filePath = resolvePath(originPath, HappyDevServer.extensions)

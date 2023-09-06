@@ -36,6 +36,8 @@ const createPlugin: (imports: Imports) => PluginItem
  */
 export function urlTransform(source: string, imports: Imports = {}): string {
     return babelTransform(source, {
-        plugins: [createPlugin(imports)]
+        plugins: [createPlugin(imports)],
+        ast: false,
+        compact: true
     })!.code as string
 }
