@@ -24,4 +24,5 @@ src
 tsconfig.json
 rollup.config.js
 rollup.dts.config.js
+examples
 .parcel-cache
