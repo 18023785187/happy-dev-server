@@ -5,7 +5,7 @@
 目前支持的功能有：
 
 - 监听文件改动自动刷新浏览器。
-- js、ts、json 文件引入扩展名省略，如 `import {} from './src/index`。
+- js、ts、json、vue 文件引入扩展名省略，如 `import {} from './src/index`。
 - 支持导入 js、css、图片、json、ts、less、scss 文件。
 - 支持 html 注入环境变量，如 `<script src="<%= static %>index.js"></script>`。
 
