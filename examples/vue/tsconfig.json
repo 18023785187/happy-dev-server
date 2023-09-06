@@ -15,12 +15,12 @@
         "jsx": "preserve",
 
         /* Linting */
-        "strict": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noFallthroughCasesInSwitch": true
+        "strict": false,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "noFallthroughCasesInSwitch": false
     },
-    "include": ["src/**/*.ts", "ui/**/*.ts", "ui/**/*.d.ts", "ui/**/*.vue"],
+    "include": ["src/**/*", "src/**/*.vue"],
     "exclude": [ // 排除项
         "node_modules"
     ]

@@ -28,7 +28,7 @@ import ImageFilterLib from "@qq1069532844/image-filter";
 import type { KernelName } from "@qq1069532844/image-filter";
 import { ElUpload, ElButton, ElSlider, vLoading } from "element-plus";
 import type { UploadProps } from "element-plus";
-import { fileToBase64 } from "./utils";
+import { fileToBase64 } from "../utils";
 
 // 等待滤波器实例生成后才能进行后续操作
 const loading = ref<boolean>(true);
@@ -99,8 +99,6 @@ function resetSlider(): void {
 
 <style scoped lang="scss">
 .image-fileter {
-  padding: 20px;
-
   .buttons-load {
     display: flex;
   }
@@ -110,7 +108,6 @@ function resetSlider(): void {
     width: 400px;
     height: 250px;
   }
-
   .slider {
     .slider-block {
       display: flex;
