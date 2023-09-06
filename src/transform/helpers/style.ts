@@ -18,8 +18,7 @@ export default function style(source: string) {
 
     return `
         ${imports.map(url => `import ${url};\n`).join('')}
-        const styleEl = document.createElement('style')
-        styleEl.innerHTML = \`${source}\`
-        document.body.appendChild(styleEl)
-    `
+const sheet = new CSSStyleSheet()
+sheet.replaceSync(\`${source}\`)
+document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]`
 }

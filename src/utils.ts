@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import crypto from 'crypto'
 
 // 执行文件的根目录
 export const rootPath = process.cwd()
@@ -59,4 +60,13 @@ export function debounce<T extends (...rest: any[]) => void>(func: T, wait: numb
             func.call(this, ...rest)
         }, wait)
     } as T
+}
+
+/**
+ * 输入字符串返回 md5 加密结果
+ * @param text 
+ * @returns 
+ */
+export function md5(text: string): string {
+    return crypto.createHash('md5').update(text).digest("hex")
 }
