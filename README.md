@@ -76,7 +76,7 @@ const defaultOptions: Required<ServerOptions> = {
 命令行配置参数
 
 ```
-happy-dev-server -w -p 8000 -h
+happy-dev-server -w -p 8000
 ```
 
 ## 功能

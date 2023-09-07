@@ -21,7 +21,7 @@ program
 program.parse()
 
 function start(config) {
-    const satrtTimestamp = Date.now()
+    const startTimestamp = Date.now()
 
     const server = new HappyDevServer({
         port: config.port,
@@ -32,7 +32,7 @@ function start(config) {
 
     server.start()
         .then(() => {
-            const elapsedTime = Date.now() - satrtTimestamp
+            const elapsedTime = Date.now() - startTimestamp
 
             console.log(
                 `${chalk.bold(chalk.green(`${pkg.name} v${pkg.version}`))

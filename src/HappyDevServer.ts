@@ -28,12 +28,14 @@ export default class HappyDevServer extends Server {
      */
     private static readonly extensions = ['js', 'ts', 'vue', 'json']
     private isWatch: boolean
-    private imports: Imports
+    private imports: Imports // 存储第三方库的路径映射
+    private importPaths: Array<string> // 存储第三方库的真实路径
     private fileMap: Map<string, string> // 缓存文件编译结果
     constructor(options: ServerOptions = {}) {
         super(options)
         this.isWatch = false
         this.imports = {}
+        this.importPaths = []
         this.fileMap = new Map()
     }
 
@@ -42,6 +44,7 @@ export default class HappyDevServer extends Server {
             super.init()
                 .then(async () => {
                     this.imports = await this.buildLib()
+                    this.importPaths = Object.values(this.imports)
                     // 如果 isWatch = true，那么自动调用 watchHandler
                     if (this.isWatch) {
                         this.watchHandler()
@@ -218,6 +221,12 @@ export default class HappyDevServer extends Server {
                 }
                 return
             }
+            let isLib: boolean = false
+            // 如果路径指向第三方库的真实路径，那么开启强缓存
+            if(this.importPaths.includes(req.url.replace('/node_modules/', ''))) {
+                res.setHeader("Cache-Control", "max-age=99999999")
+                isLib = true
+            }
             const filePath = resolvePath(originPath, HappyDevServer.extensions)
             if (!filePath) {
                 try {
@@ -242,8 +251,8 @@ export default class HappyDevServer extends Server {
                     // 转换第三方库的路径
                     result = urlTransform(result, this.imports)
                 } catch { }
-                // 设置文件缓存
-                this.fileMap.set(filePath, result)
+                // 对于不是指向第三方库的路径，设置文件缓存
+                !isLib && this.fileMap.set(filePath, result)
                 res.setHeader('Content-Type', 'application/javascript; charset=UTF-8')
                 res.send(result)
                 return
