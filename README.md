@@ -2,7 +2,7 @@
 
 <a href="https://www.npmjs.com/package/happy-dev-server"><img src="https://img.shields.io/npm/v/happy-dev-server.svg?sanitize=true" alt="Version"></a>
 
-能导入js、css、image等文件的静态服务器。
+无需配置就能导入 js、css、image 等文件的静态服务器。
 
 目前支持的功能有：
 

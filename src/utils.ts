@@ -1,9 +1,12 @@
 import fs from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import crypto from 'crypto'
 
 // 执行文件的根目录
 export const rootPath = process.cwd()
+// happy-dev-server的根目录
+export const libPath = resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
 /**
  * 合并文件路径
