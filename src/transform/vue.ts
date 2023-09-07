@@ -8,7 +8,7 @@ export default async (buffer: Buffer, parsedPath: ParsedPath) => {
     const id = md5(parsedPath.dir)
     const dataVId = `data-v-${id}`
     const filename = parsedPath.base
-    const name = parsedPath.name
+    const name = '_sfc_main'
     const renderName = '_sfc_render'
     const source = buffer.toString('utf-8')
 
@@ -38,7 +38,7 @@ export default async (buffer: Buffer, parsedPath: ParsedPath) => {
             (
                 sfc.descriptor.script || sfc.descriptor.scriptSetup ?
                     templateSource.code :
-                    rewriteDefault(templateSource.code, parsedPath.name)
+                    rewriteDefault(templateSource.code, name)
             )   // 替换 render 函数的名字
                 .replace(
                     /\nexport (function|const) (render|ssrRender)/,
