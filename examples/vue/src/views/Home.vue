@@ -3,5 +3,5 @@
 </template>
 
 <script setup lang="ts">
-import ImageFilter from "../components/ImageFilter.vue";
+import ImageFilter from "@/components/ImageFilter.vue";
 </script>

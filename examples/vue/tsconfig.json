@@ -23,5 +23,8 @@
     "include": ["src/**/*", "src/**/*.vue"],
     "exclude": [ // 排除项
         "node_modules"
-    ]
+    ],
+    "paths": { // 用于设置模块名到基于baseUrl的路径映射
+        "@/*": ["src/*"]
+    }
 }

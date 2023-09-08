@@ -1,6 +1,6 @@
 {
   "name": "happy-dev-server",
-  "version": "1.3.0-beta.3",
+  "version": "1.3.0-beta.4",
   "description": "无需配置就能能导入 js、css、image 等文件的静态服务器",
   "main": "dist/happy-dev-server.cjs",
   "module": "dist/happy-dev-server.mjs",

@@ -7,26 +7,32 @@ import { render as ejsRender } from 'ejs'
 import chalk from 'chalk'
 import Server from './Server'
 import type { ServerOptions } from './Server'
-import { rootPath, resolve, toUnixPath, resolvePath, debounce } from './utils'
+import { rootPath, resolve, toUnixPath, debounce } from './utils'
 import wsScriptTemp from './client/wsScriptTemp'
 import { transform, urlTransform } from './transform';
 import build from './build'
+import type { Alias, Extensions, Imports } from './types'
 
 interface StaticPlugin {
     (html: string): string
-}
-
-export interface Imports {
-    [k: string]: string
 }
 
 const wsPath = '/ws'
 
 export default class HappyDevServer extends Server {
     /**
+     * 路径别名，方便用户编写路径使用，例如在深层次的文件往上找 src/index.js
+     * import {} from '../../../src/index.js'
+     * 可以改写为
+     * import {} from '@/index.js'
+     */
+    private static readonly alias: Alias = {
+        '@': 'src'
+    }
+    /**
      * 匹配的扩展名，如请求路径为 ./index，会依次查找 ./index.js、./index.ts、./index.json
      */
-    private static readonly extensions = ['js', 'ts', 'vue', 'json']
+    private static readonly extensions: Extensions = ['.js', '.ts', '.vue', '.json']
     private isWatch: boolean
     private imports: Imports // 存储第三方库的路径映射
     private importPaths: Array<string> // 存储第三方库的真实路径
@@ -227,7 +233,9 @@ export default class HappyDevServer extends Server {
                 res.setHeader("Cache-Control", "max-age=99999999")
                 isLib = true
             }
-            const filePath = resolvePath(originPath, HappyDevServer.extensions)
+            // 获取解析后的路径
+            const filePath = resolve(rootPath, "." + req.url)
+            // 如果获取到的文件找不到，则抛出错误
             if (!filePath) {
                 try {
                     fs.readFileSync(originPath)
@@ -248,8 +256,8 @@ export default class HappyDevServer extends Server {
                 let result: string = await transform(buffer, parsedPath)
                 // 如果 babel 转换路径失败，说明不是能识别的文件，那么将不处理直接放行
                 try {
-                    // 转换第三方库的路径
-                    result = urlTransform(result, this.imports)
+                    // 转换路径别名、扩展名和第三方库的路径
+                    result = urlTransform(result, parsedPath.dir, HappyDevServer.alias, HappyDevServer.extensions, this.imports)
                 } catch { }
                 // 对于不是指向第三方库的路径，设置文件缓存
                 !isLib && this.fileMap.set(filePath, result)
