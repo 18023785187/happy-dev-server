@@ -72,19 +72,27 @@ function transformNodePath(node: any, dir: string, alias: Alias, extensions: Ext
 const createPlugin: (dir: string, alias: Alias, extensions: Extensions, imports: Imports) => PluginItem
     = (dir, alias, extensions, imports = {}) => ({
         visitor: {
+            // 处理 import ... from url
             ImportDeclaration(path) {
                 const { node } = path
                 if (node.source.extra) {
                     transformNodePath(node.source, dir, alias, extensions, imports)
                 }
             },
-            // 处理 import (url)
+            // 处理 import(url)
             CallExpression(path) {
                 const { node } = path
                 if (node.callee.type === 'Import') {
                     if (node.arguments[0].extra) {
                         transformNodePath(node.arguments[0], dir, alias, extensions, imports)
                     }
+                }
+            },
+            // 处理 export ... from url
+            ExportNamedDeclaration(path) {
+                const { node } = path
+                if (node.source?.extra) {
+                    transformNodePath(node.source, dir, alias, extensions, imports)
                 }
             }
         }

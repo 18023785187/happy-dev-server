@@ -257,7 +257,12 @@ export default class HappyDevServer extends Server {
                 // 如果 babel 转换路径失败，说明不是能识别的文件，那么将不处理直接放行
                 try {
                     // 转换路径别名、扩展名和第三方库的路径
-                    result = urlTransform(result, parsedPath.dir, HappyDevServer.alias, HappyDevServer.extensions, this.imports)
+                    result = urlTransform(
+                        result, 
+                        parsedPath.dir, 
+                        HappyDevServer.alias, 
+                        HappyDevServer.extensions, this.imports
+                    )
                 } catch { }
                 // 对于不是指向第三方库的路径，设置文件缓存
                 !isLib && this.fileMap.set(filePath, result)
