@@ -232,10 +232,7 @@ export default class HappyDevServer extends Server {
             let libPathIndex: number = -1
             if ((libPathIndex = this.importPaths.indexOf(req.url.slice(1))) !== -1) {
                 // 如果存在打包项，那么对第三方库进行打包
-                const libBuildFunc = this.build.packages.get(this.importPaths[libPathIndex])
-                if (libBuildFunc) {
-                    await libBuildFunc()
-                }
+                await this.build.building(this.importPaths[libPathIndex])
                 res.setHeader("Cache-Control", "max-age=99999999")
                 isLib = true
             }

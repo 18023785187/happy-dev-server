@@ -8,10 +8,21 @@ import chalk from 'chalk'
 import { resolve, rootPath } from './utils'
 
 export default class Build {
-    public static readonly prefix = 'node_modules/.happy-dev-server'
-    public readonly packages: Map<string, () => ReturnType<typeof Build['build']>>
+    private static readonly prefix = 'node_modules/.happy-dev-server'
+    private readonly packages: Map<string, () => ReturnType<typeof Build['build']>>
     constructor() {
         this.packages = new Map()
+    }
+
+    /**
+     * 向外暴露用于打包某个库的方法
+     * @param tag 
+     */
+    public async building(tag: string): Promise<any> {
+        const buildFunc = this.packages.get(tag)
+        if(buildFunc) {
+            await buildFunc()
+        }
     }
 
     /**
@@ -21,7 +32,7 @@ export default class Build {
      * @param version 包版本号
      * @param input 打包入口
      * @param external 排除的第三方库，不让第三方库打包入内
-     * @returns string 包装后的库路径
+     * @returns string 包装后的库路径，后续作为标识找到该库的打包方法
      */
     public addPackageItem(packageName: string, version: string, input: string, external: string[]): string {
         const libName = `${packageName}${encodeURI(version)}.js`
@@ -31,8 +42,21 @@ export default class Build {
             return libPath
         }
 
+        /**
+         * 避免多次打包，所以在打包过程中多次调用时只有第一次是打了包的，接下来的调用都是在等待第一次打包完成
+         * 用户加载到库进行打包时可能也在更改内容，导致浏览器刷新，从而导致多次调用打包器
+         */
+        let isBuilding: boolean = false
+        const fullfilledSubscribers: Array<(res?: any) => void> = []
+        const rejectedSubscribers: Array<(err?: any) => void> = []
         const build: () => ReturnType<typeof Build['build']> = () => {
             return new Promise((promiseResolve, promiseReject) => {
+                if(isBuilding) {
+                    fullfilledSubscribers.push(promiseResolve)
+                    rejectedSubscribers.push(promiseReject)
+                    return
+                }
+                isBuilding = true
                 const startTimestamp = Date.now()
                 console.log(
                     chalk.bold(`${chalk.green(`🚧  Building:  `)}${chalk.blue(packageName)}`)
@@ -50,9 +74,15 @@ export default class Build {
                             }   ready in ${chalk.bold(chalk.white(elapsedTime))} ms`
                         )
                         promiseResolve()
+                        fullfilledSubscribers.forEach(resolve => resolve())
+                        fullfilledSubscribers.length = 0
+                        isBuilding = false
                     })
                     .catch(err => {
                         promiseReject(err)
+                        rejectedSubscribers.forEach(reject => reject(err))
+                        rejectedSubscribers.length = 0
+                        isBuilding = false
                     })
             })
         }
