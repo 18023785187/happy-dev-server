@@ -10,6 +10,7 @@
     "happy-dev-server": "./bin/happy-dev-server.js"
   },
   "scripts": {
+    "postinstall": "patch-package",
     "clean": "del-cli dist",
     "predev": "npm run clean",
     "dev": "cross-env NODE_ENV=development rollup -c -w",
