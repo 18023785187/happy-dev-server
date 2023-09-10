@@ -7,6 +7,7 @@ import ts from './ts'
 import less from './less'
 import scss from './scss'
 import vue from './vue'
+import react from './react'
 
 interface Transform {
     (buffer: Buffer, parsedPath: ParsedPath): Promise<string>
@@ -23,6 +24,7 @@ const handlers: Handlers = Object.values({
     less: [/\.less$/, less],
     scss: [/\.scss$/, scss],
     vue: [/\.vue$/, vue],
+    react: [/\.(jsx|tsx)$/, react],
 })
 
 export const transform: Transform = async (buffer: Buffer, parsedPath: ParsedPath) => {

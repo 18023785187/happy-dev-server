@@ -20,9 +20,9 @@ yarn-debug.log*
 .DS_Store
 .vscode
 scripts
+examples
 src
-tsconfig.json
+package-lock.json
 rollup.config.js
 rollup.dts.config.js
-examples
-.parcel-cache
+tsconfig.json
