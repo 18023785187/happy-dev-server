@@ -4,14 +4,13 @@ import axios from 'axios'
 import express from 'express';
 import { WebSocketServer } from 'ws'
 import { render as ejsRender } from 'ejs'
-import chalk from 'chalk'
 import Server from './Server'
 import type { ServerOptions } from './Server'
-import { rootPath, resolve, toUnixPath, debounce } from './utils'
+import { join, rootPath, resolve, toUnixPath, resolveExports, debounce, isObj } from './utils'
 import wsScriptTemp from './client/wsScriptTemp'
 import { transform, urlTransform } from './transform';
-import build from './build'
-import type { Alias, Extensions, Imports } from './types'
+import Build from './Build'
+import type { Alias, Extensions, Imports, PackageJSON } from './types'
 
 interface StaticPlugin {
     (html: string): string
@@ -32,24 +31,29 @@ export default class HappyDevServer extends Server {
     /**
      * 匹配的扩展名，如请求路径为 ./index，会依次查找 ./index.js、./index.ts、./index.json
      */
-    private static readonly extensions: Extensions = ['.js', '.ts', '.vue', '.json']
+    private static readonly extensions: Extensions = ['.js', '.ts', '.vue', '.jsx', '.tsx', '.json']
     private isWatch: boolean
     private imports: Imports // 存储第三方库的路径映射
     private importPaths: Array<string> // 存储第三方库的真实路径
     private fileMap: Map<string, string> // 缓存文件编译结果
+    private readonly build: Build // 打包管理器
     constructor(options: ServerOptions = {}) {
         super(options)
         this.isWatch = false
         this.imports = {}
         this.importPaths = []
         this.fileMap = new Map()
+        this.build = new Build()
     }
 
+    /**
+     * 启动服务器
+     */
     public start(): Promise<void> {
         return new Promise(promiseResolve => {
             super.init()
                 .then(async () => {
-                    this.imports = await this.buildLib()
+                    this.imports = this.gatherLib()
                     this.importPaths = Object.values(this.imports)
                     // 如果 isWatch = true，那么自动调用 watchHandler
                     if (this.isWatch) {
@@ -103,6 +107,8 @@ export default class HappyDevServer extends Server {
         })
 
         const watchListener: fs.WatchListener<string> = debounce((eventType, fileName) => {
+            // 如果是 node_module 下的文件变化，则不作处理
+            if (fileName?.indexOf('node_module') === 0) return
             let filePath: string
             // 如果文件改动，则清除该文件的缓存
             if (
@@ -144,63 +150,57 @@ export default class HappyDevServer extends Server {
     }
 
     /**
-     * 打包所有第三方库
+     * 收集所有第三方库
      */
-    private buildLib(): Promise<Imports> {
-        return new Promise(promiseResolve => {
-            const imports: Imports = {}
-            const prefix = '.happy-dev-server'
-            try {
-                const packageJsonPath = resolve(toUnixPath(rootPath), './package.json')
-                const { dependencies } = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) // 获取生产依赖
-                const dependencys = Object.keys(dependencies) // 只取依赖包的名字，后续前往 node_modules 获取包路径
+    private gatherLib(): Imports {
+        const imports: Imports = {}
+        try {
+            const packageJson = fs.readFileSync(resolve(toUnixPath(rootPath), './package.json'), 'utf-8')
+            const { dependencies } = JSON.parse(packageJson) as PackageJSON // 获取生产依赖
+            const packageNames = dependencies ? Object.keys(dependencies) as string[] : [] // 只取依赖包的名字，后续前往 node_modules 获取包路径
 
-                const promises: Array<ReturnType<typeof build>> = []
-                const node_modules = resolve(toUnixPath(rootPath), './node_modules')
-                const printLibName: Array<string> = []
-                dependencys.forEach(dependency => {
-                    const libName = `${dependency}${encodeURI(dependencies[dependency])}.js`
-                    // 如果之前已经打包过当前依赖包，且版本没变，那么跳过当前依赖包的打包
-                    if (fs.existsSync(resolve(node_modules, `./${prefix}/${libName}`))) {
-                        imports[dependency] = `${prefix}/${libName}`
-                        return
-                    }
+            const node_modules = resolve(toUnixPath(rootPath), './node_modules')
+            packageNames.forEach(packageName => {
+                // 使用 try 兜底，因为可能找不到当前依赖包
+                try {
+                    const packageRootPath = resolve(node_modules, `./${packageName}`)
+                    const packageJsonPath = resolve(packageRootPath, `./package.json`)
+                    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as PackageJSON
+                    const version = dependencies![packageName]
 
-                    // 使用 try 兜底，因为可能找不到当前依赖包
-                    try {
-                        const dependencyRootPath = resolve(node_modules, `./${dependency}`)
-                        const dependencyPackageJsonPath = resolve(dependencyRootPath, `./package.json`)
-                        const dependencyPackageJson = JSON.parse(fs.readFileSync(dependencyPackageJsonPath, 'utf-8'))
+                    // 如果 exports 字段为对象，将对 exports 对象分析并收集打包项
+                    const { exports } = packageJson
+                    if (isObj(exports)) {
+                        const pureExports = resolveExports(exports)
+                        for (const alia in exports) {
+                            const input = resolve(packageRootPath, pureExports[alia])
+                            // 暂时只支持 js 文件的打包
+                            if (!['.js', '.cjs', '.mjs'].includes(path.extname(input))) continue
 
-                        promises.push(
-                            build(
-                                resolve(dependencyRootPath, dependencyPackageJson.module ?? dependencyPackageJson.main),
-                                resolve(node_modules, `./${prefix}/${libName}`),
-                                dependencys
+                            const libName = toUnixPath(join(packageName, alia))
+                            imports[libName] = this.build.addPackageItem(
+                                libName,
+                                version,
+                                input,
+                                packageNames
                             )
+                        }
+                    } else { // 如果打包入口只有一个，则以 exports > module > main 的顺序打包
+                        const { module, main } = packageJson
+                        const input = resolve(packageRootPath, exports ?? module ?? main)
+                        imports[packageName] = this.build.addPackageItem(
+                            packageName,
+                            version,
+                            input,
+                            packageNames
                         )
-
-                        imports[dependency] = `${prefix}/${libName}`
-
-                        printLibName.push(dependency)
-                    } catch { }
-                })
-                // 提示用户开始打包第三方库，打印构建列表
-                if (promises.length)
-                    console.log(
-                        chalk.bold(`${chalk.green(`🚧  Building libraries...\n`)
-                            }${chalk.gray('Library list: ')
-                            }${chalk.blue(printLibName.join(chalk.gray(', ')))
-                            }`)
-                    )
-                Promise.all(promises).then(() => {
-                    promiseResolve(imports)
-                    if (promises.length) console.log(chalk.bold(chalk.green(`📦  completed`)))
-                })
-            } catch {
-                promiseResolve(imports)
-            }
-        })
+                    }
+                } catch (e) {
+                    console.error(e)
+                }
+            })
+        } catch (err) { }
+        return imports
     }
 
     /**
@@ -228,8 +228,14 @@ export default class HappyDevServer extends Server {
                 return
             }
             let isLib: boolean = false
-            // 如果路径指向第三方库的真实路径，那么开启强缓存
-            if(this.importPaths.includes(req.url.replace('/node_modules/', ''))) {
+            // 如果路径指向第三方库的真实路径，那么打包并开启强缓存
+            let libPathIndex: number = -1
+            if ((libPathIndex = this.importPaths.indexOf(req.url.slice(1))) !== -1) {
+                // 如果存在打包项，那么对第三方库进行打包
+                const libBuildFunc = this.build.packages.get(this.importPaths[libPathIndex])
+                if (libBuildFunc) {
+                    await libBuildFunc()
+                }
                 res.setHeader("Cache-Control", "max-age=99999999")
                 isLib = true
             }
@@ -258,12 +264,15 @@ export default class HappyDevServer extends Server {
                 try {
                     // 转换路径别名、扩展名和第三方库的路径
                     result = urlTransform(
-                        result, 
-                        parsedPath.dir, 
-                        HappyDevServer.alias, 
-                        HappyDevServer.extensions, this.imports
+                        result,
+                        parsedPath.dir,
+                        HappyDevServer.alias,
+                        HappyDevServer.extensions,
+                        this.imports
                     )
-                } catch { }
+                } catch (err) {
+                    console.log(err)
+                }
                 // 对于不是指向第三方库的路径，设置文件缓存
                 !isLib && this.fileMap.set(filePath, result)
                 res.setHeader('Content-Type', 'application/javascript; charset=UTF-8')
