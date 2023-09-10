@@ -1,5 +1,5 @@
 import React, { createContext, useState, useMemo } from 'react'
-import defaultRoutes from '@/router/index'
+import defaultRoutes from '@/router'
 import { useRoutes } from 'react-router-dom';
 
 // 信息载体

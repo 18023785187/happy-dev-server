@@ -172,7 +172,7 @@ export default class HappyDevServer extends Server {
                     const { exports } = packageJson
                     if (isObj(exports)) {
                         const pureExports = resolveExports(exports)
-                        for (const alia in exports) {
+                        for (const alia in pureExports) {
                             const input = resolve(packageRootPath, pureExports[alia])
                             // 暂时只支持 js 文件的打包
                             if (!['.js', '.cjs', '.mjs'].includes(path.extname(input))) continue

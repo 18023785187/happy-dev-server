@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { transform as babelTransform, PluginItem, NodePath } from '@babel/core'
-import { importNamespaceSpecifier, identifier } from '@babel/types'
+import { importNamespaceSpecifier, identifier, file } from '@babel/types'
 import type { StringLiteral, ImportDeclaration, Program, Identifier } from '@babel/types'
 import { statement } from '@babel/template'
 import { resolve, toUnixPath, rootPath } from '../utils'
@@ -29,18 +29,25 @@ const exists: (dir: string, path: string, extensions: Extensions) => string = (d
     } else {
         filePath = resolve(dir, path)
     }
+    let stat: fs.Stats
     if (fs.existsSync(filePath)) {
-        return path
-    } else {
-        let result: string = path
-        extensions.some(extension => {
-            const newFilePath = filePath + extension
-            if (fs.existsSync(newFilePath)) {
-                return result = path + extension
-            }
-        })
-        return result
+        stat = fs.statSync(filePath)
+        if (stat.isFile()) { // 如果路径是文件，那么直接返回
+            return path
+        } else { // 如果路径是目录，那么加上 ./index 继续查找
+            filePath = resolve(filePath, './index')
+            path += '/index'
+        }
     }
+
+    let result: string = path
+    extensions.some(extension => {
+        const newFilePath = filePath + extension
+        if (fs.existsSync(newFilePath)) {
+            return result = path + extension
+        }
+    })
+    return result
 }
 
 /**

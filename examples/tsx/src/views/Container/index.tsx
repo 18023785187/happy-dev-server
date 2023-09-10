@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import './index.scss'
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar'
-import MicroAppliction from '@/components/MicroAppliction/index'
+import MicroAppliction from '@/components/MicroAppliction'
 import { NavigationContext } from '@/components/NavigationProvider'
 
 const Container: React.FC<{}> = () => {

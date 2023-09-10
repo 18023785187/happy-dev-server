@@ -1,5 +1,5 @@
 import React from 'react'
-import Container from '@/views/Container/index'
+import Container from '@/views/Container'
 import Loading from '@/components/Loading'
 
 const lazy = (importReactFC) => {
@@ -18,17 +18,17 @@ const routes = [
       children: [
          {
             path: 'home',
-            element: lazy(() => import('@/views/Home/index')),
+            element: lazy(() => import('@/views/Home')),
             children: [
                {
                   path: 'other',
-                  element: lazy(() => import('@/views/Home/Other'))
+                  element: lazy(() => import('@/views/Home'))
                }
             ]
          },
          {
             path: 'about',
-            element: lazy(() => import('@/views/About/index'))
+            element: lazy(() => import('@/views/About'))
          }
       ]
    }

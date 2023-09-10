@@ -71,3 +71,7 @@
 - 重构打包工具
 - 重构打包机制，把预先打包改为加载时打包，并新增 exports 字段值作为打包参考入口
 - 改写 commonjs 第三方库模块导入机制
+
+###### v1.3.0-beta.6 （进行中）
+
+- 增加 `index` 默认文件名的简写，如 `import {} from '@/file'` -> `import {} from '/src/file/index.js'`

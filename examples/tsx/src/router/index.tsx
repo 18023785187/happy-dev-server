@@ -24,7 +24,7 @@ const routes: RouteObject[] = [
       children: [
          {
             path: 'home',
-            element: lazy(() => import('@/views/Home/index')),
+            element: lazy(() => import('@/views/Home')),
             children: [
                {
                   path: 'other',
@@ -34,7 +34,7 @@ const routes: RouteObject[] = [
          },
          {
             path: 'about',
-            element: lazy(() => import('@/views/About/index'))
+            element: lazy(() => import('@/views/About'))
          }
       ]
    }
