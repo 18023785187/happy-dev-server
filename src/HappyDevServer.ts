@@ -2,11 +2,14 @@ import fs from 'fs'
 import path from 'path'
 import axios from 'axios'
 import express from 'express';
+import type { Express } from 'express';
+import { createProxyMiddleware } from 'http-proxy-middleware'
+import type { Options as ProxyOptions } from 'http-proxy-middleware'
 import { WebSocketServer } from 'ws'
 import { render as ejsRender } from 'ejs'
 import Server from './Server'
 import type { ServerOptions } from './Server'
-import { join, rootPath, resolve, toUnixPath, resolveExports, debounce, isObj } from './utils'
+import { join, rootPath, resolve, toUnixPath, resolveExports, debounce, isObj } from './helper'
 import wsScriptTemp from './client/wsScriptTemp'
 import { transform, urlTransform } from './transform';
 import Build from './Build'
@@ -16,34 +19,58 @@ interface StaticPlugin {
     (html: string): string
 }
 
-const wsPath = '/ws'
-
-export default class HappyDevServer extends Server {
+export interface HappyDevServerOptions extends ServerOptions {
+    watch?: boolean // 是否开启监听模式
+    setup?: (app: Express) => void // 获取 Express 示例，可以劫持请求做一些数据模拟等
+    extensions?: Extensions // 匹配的扩展名，如请求路径为 ./index，会依次查找 ./index.js、./index.ts、./index.json
     /**
      * 路径别名，方便用户编写路径使用，例如在深层次的文件往上找 src/index.js
      * import {} from '../../../src/index.js'
      * 可以改写为
      * import {} from '@/index.js'
      */
-    private static readonly alias: Alias = {
-        '@': 'src'
-    }
-    /**
-     * 匹配的扩展名，如请求路径为 ./index，会依次查找 ./index.js、./index.ts、./index.json
-     */
-    private static readonly extensions: Extensions = ['.js', '.ts', '.vue', '.jsx', '.tsx', '.json']
+    alias?: Alias
+    proxy?: { [path: string]: ProxyOptions } // 代理配置
+}
+
+const wsPath = '/ws'
+const defaultExtensions: Extensions = ['.js', '.ts', '.vue', '.jsx', '.tsx', '.json']
+const defaultAlias: Alias = {
+    '@': 'src'
+}
+
+export default class HappyDevServer extends Server {
+    private readonly alias: Alias
+    private readonly extensions: Extensions
     private isWatch: boolean
     private imports: Imports // 存储第三方库的路径映射
     private importPaths: Array<string> // 存储第三方库的真实路径
     private fileMap: Map<string, string> // 缓存文件编译结果
     private readonly build: Build // 打包管理器
-    constructor(options: ServerOptions = {}) {
+    private readonly setup: HappyDevServerOptions['setup']
+    private readonly proxyOptions: HappyDevServerOptions['proxy']
+    constructor(options: HappyDevServerOptions = {}) {
         super(options)
         this.isWatch = false
         this.imports = {}
         this.importPaths = []
         this.fileMap = new Map()
         this.build = new Build()
+
+        this.setup = options.setup
+        this.extensions = options.extensions ? [...options.extensions, ...defaultExtensions] : [...defaultExtensions]
+        this.alias = isObj(options.alias) ? { ...options.alias, ...defaultAlias } : { ...defaultAlias }
+        this.proxyOptions = isObj(options.proxy) ? options.proxy : {}
+        if(options.watch) this.watch()
+    }
+
+    /**
+     * 启用代理
+     */
+    private proxy(): void {
+        for(const path in this.proxyOptions) {
+            this.app.use(path, createProxyMiddleware(this.proxyOptions[path]))
+        }
     }
 
     /**
@@ -60,6 +87,8 @@ export default class HappyDevServer extends Server {
                         this.watchHandler()
                     }
                     this.static(staticPlugin)
+                    this.setup?.(this.app)
+                    this.proxy()
                     this.loadFile()
 
                     promiseResolve()
@@ -263,8 +292,8 @@ export default class HappyDevServer extends Server {
                     result = urlTransform(
                         result,
                         parsedPath.dir,
-                        HappyDevServer.alias,
-                        HappyDevServer.extensions,
+                        this.alias,
+                        this.extensions,
                         this.imports
                     )
                 } catch (err) {

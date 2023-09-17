@@ -1,6 +1,6 @@
 import type { ParsedPath } from 'path'
 import { transform as babelTransform } from '@babel/core'
-import { libPath } from '../utils'
+import { libPath } from '../helper'
 
 export default async (buffer: Buffer, parsedPath: ParsedPath) => {
     const source = buffer.toString('utf-8')

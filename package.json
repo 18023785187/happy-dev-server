@@ -3,20 +3,32 @@
   "version": "1.3.0-beta.7",
   "description": "无需配置就能能导入 js、css、image 等文件的静态服务器",
   "main": "dist/happy-dev-server.cjs",
-  "module": "dist/happy-dev-server.mjs",
+  "module": "dist/es/happy-dev-server.mjs",
   "types": "dist/happy-dev-server.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/happy-dev-server.d.ts",
+      "require": "./dist/happy-dev-server.cjs",
+      "import": "./es/dist/happy-dev-server.mjs"
+    },
+    "./min": {
+      "types": "./dist/happy-dev-server.d.ts",
+      "require": "./dist/happy-dev-server.min.cjs",
+      "import": "./es/dist/happy-dev-server.min.mjs"
+    }
+  },
   "type": "module",
   "bin": {
-    "happy-dev-server": "./bin/happy-dev-server.js"
+    "happy-dev-server": "dist/bin/happy-dev-server.js"
   },
   "scripts": {
     "postinstall": "patch-package",
-    "clean": "del-cli dist",
+    "clean": "del-cli dist && del-cli bin",
     "predev": "npm run clean",
-    "dev": "cross-env NODE_ENV=development rollup -c -w",
+    "dev": "cross-env NODE_ENV=development rollup -c ./scripts/build.js -w",
     "prebuild": "npm run clean && npm run build-dts",
-    "build-dts": "rollup -c rollup.dts.config.js",
-    "build": "cross-env NODE_ENV=production rollup -c"
+    "build-dts": "rollup -c ./scripts/build.dts.js",
+    "build": "cross-env NODE_ENV=production rollup -c ./scripts/build.js"
   },
   "engines": {
     "node": ">=14.18.0",
@@ -24,7 +36,8 @@
   },
   "homepage": "https://github.com/18023785187/happy-dev-server",
   "keywords": [
-    "happy-dev-server"
+    "happy-dev-server",
+    "server"
   ],
   "author": "hym",
   "license": "ISC",
@@ -42,12 +55,14 @@
     "ejs": "^3.1.9",
     "express": "^4.18.2",
     "http": "0.0.1-security",
+    "http-proxy-middleware": "^2.0.6",
     "https": "^1.0.0",
     "less": "^4.2.0",
     "node-sass": "^8.0.0",
     "rollup": "^3.28.1",
     "rollup-plugin-replace": "^2.2.0",
     "sass": "^1.66.1",
+    "selfsigned": "^2.1.1",
     "ws": "^8.13.0"
   },
   "devDependencies": {

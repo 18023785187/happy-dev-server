@@ -3,7 +3,7 @@ import { transform as babelTransform, PluginItem, NodePath } from '@babel/core'
 import { importNamespaceSpecifier, identifier, file } from '@babel/types'
 import type { StringLiteral, ImportDeclaration, Program, Identifier } from '@babel/types'
 import { statement } from '@babel/template'
-import { resolve, toUnixPath, rootPath } from '../utils'
+import { resolve, toUnixPath, rootPath } from '../helper'
 import type { Alias, Extensions, Imports } from '../types'
 
 // 排除 http、https、路径引入
@@ -108,7 +108,7 @@ function transformNodePath(node: StringLiteral, dir: string, alias: Alias, exten
  *      const useState = __happy_dev_server_react__.isCommonJS ? __happy_dev_server_react__.default.useState : __happy_dev_server_react__.useState
  * @param path 
  */
-function transformCommJSExports(path: NodePath<ImportDeclaration>, imports: Imports) {
+function transformCommonJSExports(path: NodePath<ImportDeclaration>, imports: Imports) {
     const { node } = path
     // 如果是第三方库，按以上两种情况去处理
     if (imports[node.source?.value]) {
@@ -174,7 +174,7 @@ const createPlugin: (dir: string, alias: Alias, extensions: Extensions, imports:
                 const { node } = path
                 if (node.source.extra) {
                     transformNodePath(node.source, dir, alias, extensions, imports)
-                    transformCommJSExports(path, imports)
+                    transformCommonJSExports(path, imports)
                 }
             },
             // 处理 import(url)

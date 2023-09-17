@@ -18,7 +18,7 @@
 npm i happy-dev-server -g
 ```
 
-命令行使用
+### 命令行调用
 
 ```
 // 项目的根目录下
@@ -40,44 +40,141 @@ root
 
 ---
 
-api 调用
+### api 调用
 
 ```javascript
 import HappyDevServer from 'happy-dev-server'
 
-const server = new HappyDevServer()
+const server = new HappyDevServer({
+    watch: true
+})
 server.start()
-server.watch()
 ```
 
 ## 配置参数
 
+### api配置参数
+
+#### watch
+
+可选值: `true` | `false`
+默认值: `false`
+
+是否开启监听模式，为 `true` 时开启监听模式，监听文件变动从而刷新浏览器。
+
+#### port
+
+可选值: `number`
+默认值: `1234`
+
+指定监听的端口。
+
+#### static
+
+可选值: `string`
+默认值: `/static/`
+
+指定服务器托管静态资源的路径。
+
+#### contentBase
+
+可选值: `string`
+默认值: `rootPath + '/public'`
+
+指定服务器要托管的静态资源目录。
+
+#### https
+
+可选值: `true` | `false` | `https`
+默认值: `false`
+
+是否开启 https 服务，为 `true` 时或者指定 https 证书路径则开启 https 服务。
+
+#### setup
+
+可选值: `(app: Express) => void`
+默认值: `undefined`
+
+获取 Express 实例，可以劫持请求做一些数据模拟等。
+
+#### extensions
+
+可选值: `Extensions`
+默认值: `['.js', '.ts', '.vue', '.jsx', '.tsx', '.json']`
+
+文件后缀省略配置项，若 `happy-dev-server` 找不到对应路径的文件时会尝试拼接后缀继续查找。
+
+#### alias
+
+可选值: `Alias`
+默认值: `{ '@': 'src' }`
+
+路径前缀别名，若路径前缀能匹配上则会替换为对应值。
+
+#### proxy
+
+可选值: `{ [path: string]: ProxyOptions }`
+默认值: `{}`
+
+代理配置，其中 `ProxyOptions` 为第三方库 `http-proxy-middleware` 的 `Options` 配置项。
+
 ```typescript
-type port = number
 type https = {
-    key: Buffer,
+    key: Buffer
     cert: Buffer
 }
 
 interface ServerOptions {
-    port?: port, // 端口
-    https?: https | false // https 服务
-    static?: string // 线上静态目录文件位置
-    contentBase?: string // 静态文件目录
+    port?: number
+    https?: https | boolean
+    static?: string
+    contentBase?: string
 }
 
-const defaultOptions: Required<ServerOptions> = {
+interface Alias {
+    [k: string]: string
+}
+
+type Extensions = string[]
+
+export interface HappyDevServerOptions extends ServerOptions {
+    watch?: boolean
+    setup?: (app: Express) => void
+    extensions?: Extensions
+    alias?: Alias
+    proxy?: { [path: string]: ProxyOptions }
+}
+
+
+const defaultOptions: Required<HappyDevServerOptions> = {
     port: 1234,
     https: false,
     static: '/static/',
-    contentBase: rootPath + '/public'
+    contentBase: rootPath + '/public',
+    watch: false,
+    setup: undefined,
+    extensions: ['.js', '.ts', '.vue', '.jsx', '.tsx', '.json'],
+    alias: { '@': 'src' },
+    proxy: {}
 }
 ```
 
-命令行配置参数
+### 命令行配置参数
 
 ```
-happy-dev-server -w -p 8000
+happy-dev-server -w -p 8000 -hs key+5-key.pem cert+5.pem
+
+Usage: happy-dev-server [options]
+
+Options:
+  -v, --version               output the version number
+  -c, --config [filename]     指定配置文件 (default: "happy.config.js")
+  -w, --watch                 监听文件变动，从而刷新浏览器
+  -p, --port <number>         指定端口号
+  -s, --static <path>         指定静态目录存放路径
+  -hs, --https [filePath...]  指定开启https协议，需提供 key 和 cert 路径，若不提 
+供参数则会自动生成自签名证书
+  -h, --help                  display help for command
 ```
 
 ## 功能
@@ -155,7 +252,3 @@ import 'element-plus/dist/index.css'
 // --->
 import '/node_modules/element-plus/dist/index.css'
 ```
-
-## 备忘录
-
-还差 https 模块的支持

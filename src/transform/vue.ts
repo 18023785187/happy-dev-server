@@ -1,6 +1,6 @@
 import type { ParsedPath } from 'path'
 import { parse, compileTemplate, compileScript, compileStyle, rewriteDefault } from '@vue/compiler-sfc'
-import { md5 } from '../utils'
+import { md5 } from '../helper'
 import style from './helpers/style'
 import transformTs from './ts'
 

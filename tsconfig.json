@@ -18,7 +18,7 @@
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
   },
-  "include": ["src/**/*.ts", "rollup.config.js", "src/index.ts", "../happy-server/src/HappyServer.ts"],
+  "include": ["src/**/*.ts", "scripts/build.js", "src/index.ts", "../happy-server/src/HappyServer.ts", "src/helper/index.ts"],
   "exclude": [ // 排除项
     "node_modules"
   ]

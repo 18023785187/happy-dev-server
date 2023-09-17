@@ -1,10 +1,15 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
 import crypto from 'crypto'
-import type { Exports } from './types'
+import os from 'os'
+import type { Exports } from '../types'
 
 export function isObj(target: any): target is Object {
     return Object.prototype.toString.call(target) === '[object Object]'
+}
+
+export function isBoolean(target: any): target is boolean {
+    return typeof target === 'boolean'
 }
 
 // 执行文件的根目录
@@ -95,4 +100,16 @@ export function debounce<T extends (...rest: any[]) => void>(func: T, wait: numb
  */
 export function md5(text: string): string {
     return crypto.createHash('md5').update(text).digest("hex")
+}
+
+/**
+ * 获取除 localhost 外的 ipv4 地址
+ * @returns 
+ */
+export function getNetworkIps(): string[] {
+    return Object.values(
+        os.networkInterfaces()
+    )
+        .filter(net => net?.every(item => item.address !== '127.0.0.1'))
+        .map(network => network?.filter(item => item.family === 'IPv4')[0].address) as string[]
 }

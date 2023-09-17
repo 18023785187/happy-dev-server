@@ -19,10 +19,9 @@ yarn-debug.log*
 .eslintcache
 .DS_Store
 .vscode
-scripts
-examples
-src
+/scripts
+/examples
+/src
+/cli
 package-lock.json
-rollup.config.js
-rollup.dts.config.js
 tsconfig.json

@@ -4,8 +4,8 @@ import type { InputOptions, OutputOptions } from 'rollup'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import replace from 'rollup-plugin-replace'
-import chalk from 'chalk'
-import { resolve, rootPath } from './utils'
+import { resolve, rootPath } from './helper'
+import beautify from './helper/fontStyle'
 
 export default class Build {
     private static readonly prefix = 'node_modules/.happy-dev-server'
@@ -59,7 +59,7 @@ export default class Build {
                 isBuilding = true
                 const startTimestamp = Date.now()
                 console.log(
-                    chalk.bold(`${chalk.green(`🚧  Building:  `)}${chalk.blue(packageName)}`)
+                    beautify(`🚧  Building:  `, 'green') + beautify(packageName, 'blue')
                 )
 
                 Build.build(
@@ -70,8 +70,8 @@ export default class Build {
                     .then(() => {
                         const elapsedTime = Date.now() - startTimestamp
                         console.log(
-                            `${chalk.bold(chalk.green(`📦  Completed:  ${chalk.blue(packageName)}`))
-                            }   ready in ${chalk.bold(chalk.white(elapsedTime))} ms`
+                            `${beautify(`📦  Completed:  `, 'green') + beautify(packageName, 'blue')
+                            }   ready in ${beautify(elapsedTime, 'white')} ms`
                         )
                         promiseResolve()
                         fullfilledSubscribers.forEach(resolve => resolve())
