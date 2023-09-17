@@ -40,8 +40,8 @@ builds.push(
         output: [
             {
                 dir: resolve(`../dist`),
-                chunkFileNames: 'shared/[name].mjs',
-                entryFileNames: 'es/[name].mjs',
+                chunkFileNames: 'shared/[name].js',
+                entryFileNames: 'es/[name].js',
                 format: "es",
             },
         ],
@@ -58,8 +58,8 @@ if (process.env.NODE_ENV !== 'development') {
         output: [
             {
                 dir: resolve(`../dist`),
-                chunkFileNames: 'shared/[name].min.mjs',
-                entryFileNames: 'es/[name].min.mjs',
+                chunkFileNames: 'shared/[name].min.js',
+                entryFileNames: 'es/[name].min.js',
                 format: "es",
                 plugins: [terser()]
             },
@@ -69,41 +69,8 @@ if (process.env.NODE_ENV !== 'development') {
         ],
         external: commonExternal
     }
-    const commonJSBuild = {
-        input,
-        output: [
-            {
-                dir: resolve(`../dist`),
-                chunkFileNames: 'shared/[name].cjs',
-                entryFileNames: '[name].cjs',
-                format: "cjs",
-            },
-        ],
-        plugins: [
-            ...commonPlugins,
-        ],
-        external: commonExternal
-    }
-    const commonJSMinBuild = {
-        input,
-        output: [
-            {
-                dir: resolve(`../dist`),
-                chunkFileNames: 'shared/[name].min.cjs',
-                entryFileNames: '[name].min.cjs',
-                format: "cjs",
-                plugins: [terser()]
-            },
-        ],
-        plugins: [
-            ...commonPlugins,
-        ],
-        external: commonExternal
-    }
     builds.push(
-        esMinBuild,
-        commonJSBuild,
-        commonJSMinBuild
+        esMinBuild
     )
 }
 

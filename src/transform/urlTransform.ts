@@ -96,7 +96,7 @@ function transformNodePath(node: StringLiteral, dir: string, alias: Alias, exten
  * 原本应该 import * as React from 'react' 的语句时就只导出了 { default: ... }
  * 所以需要额外的解析令上面语句返回正确的导出
  * 
- * 第一步：修改 @rollup/plugin-commonjs 源码，令导出增加一行 export const isCommonJS = true;
+ * 第一步：增加 rollup plugin，令导出增加一行 export const isCommonJS = true;（详情见 src/Build.ts addCommonJSSymbol）
  * 
  * 第二步：
  *  1、如果遇到 import * as React from 'react' 时，将解析为：

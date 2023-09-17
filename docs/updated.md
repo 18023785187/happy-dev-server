@@ -87,3 +87,7 @@
 - 新增传入配置文件功能
 - 优化代码结构
 - 优化文档
+
+#### v1.3.0
+
+- 移除 patch-package，改为编写 rollup plugin 改写 commonjs 默认导出

@@ -1,20 +1,18 @@
 {
   "name": "happy-dev-server",
-  "version": "1.3.0-beta.7",
+  "version": "1.3.0",
   "description": "无需配置就能能导入 js、css、image 等文件的静态服务器",
-  "main": "dist/happy-dev-server.cjs",
-  "module": "dist/es/happy-dev-server.mjs",
+  "main": "dist/es/happy-dev-server.js",
+  "module": "dist/es/happy-dev-server.js",
   "types": "dist/happy-dev-server.d.ts",
   "exports": {
     ".": {
       "types": "./dist/happy-dev-server.d.ts",
-      "require": "./dist/happy-dev-server.cjs",
-      "import": "./es/dist/happy-dev-server.mjs"
+      "import": "./dist/es/happy-dev-server.js"
     },
     "./min": {
       "types": "./dist/happy-dev-server.d.ts",
-      "require": "./dist/happy-dev-server.min.cjs",
-      "import": "./es/dist/happy-dev-server.min.mjs"
+      "import": "./dist/es/happy-dev-server.min.js"
     }
   },
   "type": "module",
@@ -22,7 +20,6 @@
     "happy-dev-server": "dist/bin/happy-dev-server.js"
   },
   "scripts": {
-    "postinstall": "patch-package",
     "clean": "del-cli dist && del-cli bin",
     "predev": "npm run clean",
     "dev": "cross-env NODE_ENV=development rollup -c ./scripts/build.js -w",
@@ -77,7 +74,6 @@
     "@types/ws": "^8.5.5",
     "cross-env": "^7.0.3",
     "del-cli": "^5.1.0",
-    "patch-package": "^8.0.0",
     "rollup-plugin-dts": "^6.0.0",
     "rollup-plugin-typescript2": "^0.35.0",
     "typescript": "^5.2.2"

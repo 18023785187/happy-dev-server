@@ -45,10 +45,9 @@ root
 ```javascript
 import HappyDevServer from 'happy-dev-server'
 
-const server = new HappyDevServer({
+new HappyDevServer({
     watch: true
-})
-server.start()
+}).start()
 ```
 
 ## 配置参数

@@ -9,11 +9,13 @@ import { WebSocketServer } from 'ws'
 import { render as ejsRender } from 'ejs'
 import Server from './Server'
 import type { ServerOptions } from './Server'
-import { join, rootPath, resolve, toUnixPath, resolveExports, debounce, isObj } from './helper'
+import { join, rootPath, resolve, toUnixPath, resolveExports, debounce, isObj, getNetworkIps } from './helper'
 import wsScriptTemp from './client/wsScriptTemp'
 import { transform, urlTransform } from './transform';
 import Build from './Build'
 import type { Alias, Extensions, Imports, PackageJSON } from './types'
+import beautify from './helper/fontStyle'
+import pkg from './helper/package.json'
 
 interface StaticPlugin {
     (html: string): string
@@ -61,14 +63,14 @@ export default class HappyDevServer extends Server {
         this.extensions = options.extensions ? [...options.extensions, ...defaultExtensions] : [...defaultExtensions]
         this.alias = isObj(options.alias) ? { ...options.alias, ...defaultAlias } : { ...defaultAlias }
         this.proxyOptions = isObj(options.proxy) ? options.proxy : {}
-        if(options.watch) this.watch()
+        if (options.watch) this.watch()
     }
 
     /**
      * 启用代理
      */
     private proxy(): void {
-        for(const path in this.proxyOptions) {
+        for (const path in this.proxyOptions) {
             this.app.use(path, createProxyMiddleware(this.proxyOptions[path]))
         }
     }
@@ -78,6 +80,7 @@ export default class HappyDevServer extends Server {
      */
     public start(): Promise<void> {
         return new Promise(promiseResolve => {
+            const startTimestamp = Date.now()
             super.init()
                 .then(async () => {
                     this.imports = this.gatherLib()
@@ -90,6 +93,21 @@ export default class HappyDevServer extends Server {
                     this.setup?.(this.app)
                     this.proxy()
                     this.loadFile()
+
+                    const elapsedTime = Date.now() - startTimestamp
+                    console.log(
+                        `${beautify(`${pkg.name} v${pkg.version}`, 'green')
+                        }   ready in ${beautify(elapsedTime, 'white')} ms`
+                    )
+
+                    const arrow = beautify(`➜`, 'green')
+                    const ips = getNetworkIps()
+                    ips.unshift('localhost')
+                    ips.forEach((ip, index) => {
+                        const prefix = beautify(index === 0 ? 'Local  ' : 'Network', 'white')
+                        const url = `${this.https ? 'https' : 'http'}://${ip}:${this.port}`
+                        console.log(`${arrow}  ${prefix} :   ${beautify(url, 'blue')}`)
+                    })
 
                     promiseResolve()
                 })

@@ -1,11 +1,26 @@
 import fs from 'fs'
 import { rollup } from 'rollup'
-import type { InputOptions, OutputOptions } from 'rollup'
+import type { InputOptions, OutputOptions, Plugin } from 'rollup'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import replace from 'rollup-plugin-replace'
 import { resolve, rootPath } from './helper'
 import beautify from './helper/fontStyle'
+
+/**
+ * 为 commonjs 模块添加标识，以便正确解析 commonjs
+ */
+function addCommonJSSymbol(): Plugin {
+    return {
+        name: 'add-commonJS-symbol',
+        footer(data) {
+            if(data.exports.length === 1 && data.exports[0] === 'default') {
+                return 'export const isCommonJS = true;'
+            }
+            return ''
+        }
+    }
+}
 
 export default class Build {
     private static readonly prefix = 'node_modules/.happy-dev-server'
@@ -20,7 +35,7 @@ export default class Build {
      */
     public async building(tag: string): Promise<any> {
         const buildFunc = this.packages.get(tag)
-        if(buildFunc) {
+        if (buildFunc) {
             await buildFunc()
         }
     }
@@ -51,7 +66,7 @@ export default class Build {
         const rejectedSubscribers: Array<(err?: any) => void> = []
         const build: () => ReturnType<typeof Build['build']> = () => {
             return new Promise((promiseResolve, promiseReject) => {
-                if(isBuilding) {
+                if (isBuilding) {
                     fullfilledSubscribers.push(promiseResolve)
                     rejectedSubscribers.push(promiseReject)
                     return
@@ -110,6 +125,7 @@ export default class Build {
                         nodeResolve({
                             extensions: ['.js']
                         }),
+                        addCommonJSSymbol(),
                     ],
                     external
                 }
