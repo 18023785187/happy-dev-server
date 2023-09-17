@@ -1,0 +1,16 @@
+{
+  "name": "config",
+  "version": "1.0.0",
+  "main": "options.js",
+  "type": "module",
+  "scripts": {
+    "node-serve": "node test-proxy/app.js",
+    "start": "happy-dev-server",
+    "start-https": "happy-dev-server -c https.config.js",
+    "start-proxy": "happy-dev-server -c proxy.config.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
