@@ -6,9 +6,10 @@
 
 目前支持的功能有：
 
-- 监听文件改动自动刷新浏览器。
+- 支持命令行，支持根目录配置文件 `happy.config.js`。
+- 支持 https、http2 协议，支持代理，支持自定义请求，支持监听文件改动自动刷新浏览器。
 - 支持 `import {} from '@/index' -> import {} from '/src/index'` 路径别名。
-- js、ts、json、vue 文件引入扩展名省略，如 `import {} from './src/index`。
+- js、ts、json、vue、jsx、tsx 文件引入扩展名省略，如 `import {} from './src/index`。
 - 支持导入 js、css、图片、json、ts、less、scss、vue、jsx、tsx 文件。
 - 支持 html 注入环境变量，如 `<script src="<%= static %>index.js"></script>`。
 
@@ -89,6 +90,13 @@ new HappyDevServer({
 
 是否开启 https 服务，为 `true` 时或者指定 https 证书路径则开启 https 服务。
 
+#### http2
+
+可选值: `true` | `false`
+默认值: `false`
+
+是否开启 http2 服务，为 `true` 时则开启 http2 服务。
+
 #### setup
 
 可选值: `(app: Express) => void`
@@ -126,6 +134,7 @@ type https = {
 interface ServerOptions {
     port?: number
     https?: https | boolean
+    http2?: boolean
     static?: string
     contentBase?: string
 }
@@ -148,6 +157,7 @@ export interface HappyDevServerOptions extends ServerOptions {
 const defaultOptions: Required<HappyDevServerOptions> = {
     port: 1234,
     https: false,
+    http2: false,
     static: '/static/',
     contentBase: rootPath + '/public',
     watch: false,
@@ -171,8 +181,8 @@ Options:
   -w, --watch                 监听文件变动，从而刷新浏览器
   -p, --port <number>         指定端口号
   -s, --static <path>         指定静态目录存放路径
-  -hs, --https [filePath...]  指定开启https协议，需提供 key 和 cert 路径，若不提 
-供参数则会自动生成自签名证书
+  -hs, --https [filePath...]  指定开启https协议，需提供 key 和 cert 路径，若不提供参数则会自动生成自签名证书
+  -h2, --http2                指定开启http2协议
   -h, --help                  display help for command
 ```
 

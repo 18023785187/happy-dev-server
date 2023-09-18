@@ -12,6 +12,7 @@ program
     .option('-p, --port <number>', '指定端口号')
     .option('-s, --static <path>', '指定静态目录存放路径')
     .option('-hs, --https [filePath...]', '指定开启https协议，需提供 key 和 cert 路径，若不提供参数则会自动生成自签名证书')
+    .option('-h2, --http2', '指定开启http2协议')
     .action(start)
 
 program.parse()

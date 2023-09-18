@@ -15,6 +15,7 @@ type https = {
 export interface ServerOptions {
     port?: port, // 端口
     https?: https | boolean // https 服务
+    http2?: boolean // htts2 协议
     static?: string // 线上静态目录文件位置
     contentBase?: string // 静态文件目录
 }
@@ -22,6 +23,7 @@ export interface ServerOptions {
 const defaultOptions: Required<ServerOptions> = {
     port: 1234,
     https: false,
+    http2: false,
     static: '/static/',
     contentBase: resolve(rootPath + '/public')
 }
@@ -53,6 +55,7 @@ export default class Server {
 
         if (options?.port) newOptions.port = options.port
         if (options?.https) newOptions.https = options.https
+        if (options?.http2) newOptions.http2 = options.http2
         if (options?.static) newOptions.static = options.static
         if (options?.contentBase) newOptions.contentBase = options.contentBase
 
@@ -65,9 +68,9 @@ export default class Server {
      */
     protected async init(): ReturnType<Server['listen']> {
         return new Promise(async (resolve) => {
-            let certificate: https
+            let certificate: https & { spdy?: { protocols: ['h2'] } }
             if (this.options.https) {
-                if(this.options.https === true) {
+                if (this.options.https === true) {
                     const pems = await this.createPems()
                     certificate = {
                         key: pems.private,
@@ -76,9 +79,18 @@ export default class Server {
                 } else {
                     certificate = this.options.https
                 }
-                const https = await import('https')
-                const httpsServer = https.createServer(certificate, this.app)
-                this.server = httpsServer
+                let server
+                if (this.options.http2) {
+                    certificate.spdy = {
+                        protocols: ['h2']
+                    }
+                    const spdy = (await import('spdy')).default
+                    server = spdy.createServer(certificate, this.app)
+                } else {
+                    const https = await import('https')
+                    server = https.createServer(certificate, this.app)
+                }
+                this.server = server
             } else {
                 const http = await import('http')
                 const httpServer = http.createServer(this.app)

@@ -1,6 +1,6 @@
 {
   "name": "happy-dev-server",
-  "version": "1.3.0",
+  "version": "1.4.0-beta.0",
   "description": "无需配置就能能导入 js、css、image 等文件的静态服务器",
   "main": "dist/es/happy-dev-server.js",
   "module": "dist/es/happy-dev-server.js",
@@ -60,6 +60,7 @@
     "rollup-plugin-replace": "^2.2.0",
     "sass": "^1.66.1",
     "selfsigned": "^2.1.1",
+    "spdy": "^4.0.2",
     "ws": "^8.13.0"
   },
   "devDependencies": {
@@ -71,6 +72,7 @@
     "@types/express": "^4.17.17",
     "@types/less": "^3.0.4",
     "@types/node-sass": "^4.11.4",
+    "@types/spdy": "^3.4.5",
     "@types/ws": "^8.5.5",
     "cross-env": "^7.0.3",
     "del-cli": "^5.1.0",

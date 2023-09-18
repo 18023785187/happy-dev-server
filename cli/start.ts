@@ -10,6 +10,7 @@ interface CommandOptions {
     port?: number;
     static?: string;
     https?: string[] | boolean
+    http2?: boolean
 }
 
 export default async function start(config: CommandOptions) {
@@ -31,6 +32,7 @@ export default async function start(config: CommandOptions) {
     commandOptions.watch = config.watch
     commandOptions.port = config.port
     commandOptions.static = config.static
+    commandOptions.http2 = config.http2
 
     const fileOptions = await loadConfigFile(config.config)
 
